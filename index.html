@@ -63,7 +63,49 @@
             camera.updateProjectionMatrix();
         });
 
-        // Phần 5: Khởi chạy
+        // Phần 5: Hỗ trợ cảm ứng trên mobile
+        let touchStartX = 0, touchStartY = 0;
+        let touchPrevDistance = 0;
+
+        document.addEventListener('touchstart', (event) => {
+            if (event.touches.length === 1) {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            } else if (event.touches.length === 2) {
+                // Xử lý zoom bằng pinch
+                const dx = event.touches[0].clientX - event.touches[1].clientX;
+                const dy = event.touches[0].clientY - event.touches[1].clientY;
+                touchPrevDistance = Math.sqrt(dx * dx + dy * dy);
+            }
+        });
+
+        document.addEventListener('touchmove', (event) => {
+            if (event.touches.length === 1) {
+                const deltaX = event.touches[0].clientX - touchStartX;
+                const deltaY = event.touches[0].clientY - touchStartY;
+
+                sphere.rotation.y += deltaX * 0.005;
+                sphere.rotation.x += deltaY * 0.005;
+
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            } else if (event.touches.length === 2) {
+                // Xử lý zoom bằng pinch
+                const dx = event.touches[0].clientX - event.touches[1].clientX;
+                const dy = event.touches[0].clientY - event.touches[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                const zoomFactor = (touchPrevDistance - distance) * 0.1;
+                camera.fov += zoomFactor;
+                camera.fov = Math.max(30, Math.min(90, camera.fov));
+                camera.updateProjectionMatrix();
+
+                touchPrevDistance = distance;
+            }
+            event.preventDefault();
+        });
+
+        // Phần 6: Khởi chạy
         camera.position.z = 0.1;
         function animate() {
             requestAnimationFrame(animate);
